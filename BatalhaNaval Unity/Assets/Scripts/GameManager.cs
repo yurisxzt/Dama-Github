@@ -21,9 +21,38 @@ public class GameManager : MonoBehaviour
         redTurn = !redTurn;
 
         Debug.Log(
-            redTurn ?
-            "Turno do Vermelho" :
-            "Turno do Preto"
+            redTurn
+            ? "Turno do Vermelho"
+            : "Turno do Preto"
         );
+    }
+
+    public void CheckWinner()
+    {
+        Piece[] pieces =
+            FindObjectsByType<Piece>(
+                FindObjectsSortMode.None
+            );
+
+        int redCount = 0;
+        int blackCount = 0;
+
+        foreach (Piece piece in pieces)
+        {
+            if (piece.isRed)
+                redCount++;
+            else
+                blackCount++;
+        }
+
+        if (redCount == 0)
+        {
+            Debug.Log("Preto venceu!");
+        }
+
+        if (blackCount == 0)
+        {
+            Debug.Log("Vermelho venceu!");
+        }
     }
 }

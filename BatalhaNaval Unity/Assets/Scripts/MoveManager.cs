@@ -17,8 +17,16 @@ public class MoveManager : MonoBehaviour
         if (piece == null)
             return;
 
-        bool validMove = false;
+        Piece pieceOnTarget =
+            BoardState.Instance.GetPieceAt(
+                tile.row,
+                tile.column
+            );
 
+        if (pieceOnTarget != null)
+            return;
+
+        bool validMove = false;
         Piece capturedPiece = null;
 
         int rowDifference =
@@ -27,48 +35,68 @@ public class MoveManager : MonoBehaviour
         int columnDifference =
             tile.column - piece.column;
 
+        // =====================
         // MOVIMENTO NORMAL
+        // =====================
 
-        if (piece.isRed)
+        if (!piece.isKing)
+        {
+            if (piece.isRed)
+            {
+                if (
+                    rowDifference == -1 &&
+                    Mathf.Abs(columnDifference) == 1
+                )
+                {
+                    validMove = true;
+                }
+            }
+            else
+            {
+                if (
+                    rowDifference == 1 &&
+                    Mathf.Abs(columnDifference) == 1
+                )
+                {
+                    validMove = true;
+                }
+            }
+        }
+
+        // =====================
+        // MOVIMENTO DA DAMA
+        // =====================
+
+        if (piece.isKing)
         {
             if (
-                rowDifference == -1 &&
+                Mathf.Abs(rowDifference) == 1 &&
                 Mathf.Abs(columnDifference) == 1
             )
             {
                 validMove = true;
             }
         }
-        else
+
+        // =====================
+        // CAPTURA NORMAL
+        // =====================
+
+        if (!piece.isKing)
         {
             if (
-                rowDifference == 1 &&
-                Mathf.Abs(columnDifference) == 1
-            )
-            {
-                validMove = true;
-            }
-        }
-
-        // CAPTURA
-
-        if (piece.isRed)
-        {
-            if (
-                rowDifference == -2 &&
+                Mathf.Abs(rowDifference) == 2 &&
                 Mathf.Abs(columnDifference) == 2
             )
             {
                 int middleRow =
-                    piece.row - 1;
+                    piece.row + rowDifference / 2;
 
                 int middleColumn =
-                    piece.column +
-                    columnDifference / 2;
+                    piece.column + columnDifference / 2;
 
                 Piece enemy =
-                    BoardState.Instance
-                    .GetPieceAt(
+                    BoardState.Instance.GetPieceAt(
                         middleRow,
                         middleColumn
                     );
@@ -83,23 +111,26 @@ public class MoveManager : MonoBehaviour
                 }
             }
         }
-        else
+
+        // =====================
+        // CAPTURA DA DAMA
+        // =====================
+
+        if (piece.isKing)
         {
             if (
-                rowDifference == 2 &&
+                Mathf.Abs(rowDifference) == 2 &&
                 Mathf.Abs(columnDifference) == 2
             )
             {
                 int middleRow =
-                    piece.row + 1;
+                    piece.row + rowDifference / 2;
 
                 int middleColumn =
-                    piece.column +
-                    columnDifference / 2;
+                    piece.column + columnDifference / 2;
 
                 Piece enemy =
-                    BoardState.Instance
-                    .GetPieceAt(
+                    BoardState.Instance.GetPieceAt(
                         middleRow,
                         middleColumn
                     );
@@ -121,6 +152,8 @@ public class MoveManager : MonoBehaviour
         if (capturedPiece != null)
         {
             Destroy(capturedPiece.gameObject);
+
+            GameManager.Instance.CheckWinner();
         }
 
         piece.MoveTo(
@@ -130,10 +163,8 @@ public class MoveManager : MonoBehaviour
 
         piece.Deselect();
 
-        SelectionManager.Instance
-            .ClearSelection();
+        SelectionManager.Instance.ClearSelection();
 
-        GameManager.Instance
-            .ChangeTurn();
+        GameManager.Instance.ChangeTurn();
     }
 }
