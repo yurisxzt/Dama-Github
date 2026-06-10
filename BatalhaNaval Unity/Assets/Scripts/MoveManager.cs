@@ -19,29 +19,98 @@ public class MoveManager : MonoBehaviour
 
         bool validMove = false;
 
+        Piece capturedPiece = null;
+
+        int rowDifference =
+            tile.row - piece.row;
+
+        int columnDifference =
+            tile.column - piece.column;
+
+        // MOVIMENTO NORMAL
+
         if (piece.isRed)
         {
-            if (tile.row == piece.row - 1)
+            if (
+                rowDifference == -1 &&
+                Mathf.Abs(columnDifference) == 1
+            )
             {
+                validMove = true;
+            }
+        }
+        else
+        {
+            if (
+                rowDifference == 1 &&
+                Mathf.Abs(columnDifference) == 1
+            )
+            {
+                validMove = true;
+            }
+        }
+
+        // CAPTURA
+
+        if (piece.isRed)
+        {
+            if (
+                rowDifference == -2 &&
+                Mathf.Abs(columnDifference) == 2
+            )
+            {
+                int middleRow =
+                    piece.row - 1;
+
+                int middleColumn =
+                    piece.column +
+                    columnDifference / 2;
+
+                Piece enemy =
+                    BoardState.Instance
+                    .GetPieceAt(
+                        middleRow,
+                        middleColumn
+                    );
+
                 if (
-                    tile.column == piece.column - 1 ||
-                    tile.column == piece.column + 1
+                    enemy != null &&
+                    enemy.isRed != piece.isRed
                 )
                 {
                     validMove = true;
+                    capturedPiece = enemy;
                 }
             }
         }
         else
         {
-            if (tile.row == piece.row + 1)
+            if (
+                rowDifference == 2 &&
+                Mathf.Abs(columnDifference) == 2
+            )
             {
+                int middleRow =
+                    piece.row + 1;
+
+                int middleColumn =
+                    piece.column +
+                    columnDifference / 2;
+
+                Piece enemy =
+                    BoardState.Instance
+                    .GetPieceAt(
+                        middleRow,
+                        middleColumn
+                    );
+
                 if (
-                    tile.column == piece.column - 1 ||
-                    tile.column == piece.column + 1
+                    enemy != null &&
+                    enemy.isRed != piece.isRed
                 )
                 {
                     validMove = true;
+                    capturedPiece = enemy;
                 }
             }
         }
@@ -49,14 +118,22 @@ public class MoveManager : MonoBehaviour
         if (!validMove)
             return;
 
-        piece.row = tile.row;
-        piece.column = tile.column;
+        if (capturedPiece != null)
+        {
+            Destroy(capturedPiece.gameObject);
+        }
 
-        piece.transform.position =
-            new Vector3(
-                tile.column,
-                -tile.row,
-                -1
-            );
+        piece.MoveTo(
+            tile.row,
+            tile.column
+        );
+
+        piece.Deselect();
+
+        SelectionManager.Instance
+            .ClearSelection();
+
+        GameManager.Instance
+            .ChangeTurn();
     }
 }

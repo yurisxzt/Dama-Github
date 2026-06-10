@@ -7,13 +7,11 @@ public class Piece : MonoBehaviour
     public int column;
 
     private SpriteRenderer spriteRenderer;
-
     private Color originalColor;
 
     private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-
         originalColor = spriteRenderer.color;
     }
 
@@ -30,5 +28,18 @@ public class Piece : MonoBehaviour
     public void Deselect()
     {
         spriteRenderer.color = originalColor;
+    }
+
+    public void MoveTo(int newRow, int newColumn)
+    {
+        row = newRow;
+        column = newColumn;
+
+        transform.position =
+            new Vector3(
+                newColumn,
+                -newRow,
+                -1
+            );
     }
 }

@@ -13,18 +13,25 @@ public class SelectionManager : MonoBehaviour
 
     public void SelectPiece(Piece piece)
     {
+        if (piece.isRed != GameManager.Instance.redTurn)
+            return;
+
         if (selectedPiece != null)
         {
             selectedPiece.Deselect();
         }
 
         selectedPiece = piece;
-
         selectedPiece.Select();
     }
 
     public Piece GetSelectedPiece()
     {
         return selectedPiece;
+    }
+
+    public void ClearSelection()
+    {
+        selectedPiece = null;
     }
 }

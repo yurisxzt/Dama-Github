@@ -11,6 +11,11 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        Debug.Log("Turno do Vermelho");
+    }
+
     public void ChangeTurn()
     {
         redTurn = !redTurn;
