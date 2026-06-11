@@ -13,46 +13,49 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("Turno do Vermelho");
+        UIManager.Instance.UpdateTurn(redTurn);
     }
 
     public void ChangeTurn()
     {
         redTurn = !redTurn;
 
-        Debug.Log(
-            redTurn
-            ? "Turno do Vermelho"
-            : "Turno do Preto"
+        UIManager.Instance.UpdateTurn(redTurn);
+    }
+
+   public void CheckWinner()
+{
+    Piece[] pieces =
+        FindObjectsByType<Piece>(
+            FindObjectsSortMode.None
         );
-    }
 
-    public void CheckWinner()
+    int redCount = 0;
+    int blackCount = 0;
+
+    foreach (Piece piece in pieces)
     {
-        Piece[] pieces =
-            FindObjectsByType<Piece>(
-                FindObjectsSortMode.None
-            );
+        if (piece == null)
+            continue;
 
-        int redCount = 0;
-        int blackCount = 0;
-
-        foreach (Piece piece in pieces)
-        {
-            if (piece.isRed)
-                redCount++;
-            else
-                blackCount++;
-        }
-
-        if (redCount == 0)
-        {
-            Debug.Log("Preto venceu!");
-        }
-
-        if (blackCount == 0)
-        {
-            Debug.Log("Vermelho venceu!");
-        }
+        if (piece.isRed)
+            redCount++;
+        else
+            blackCount++;
     }
+
+    Debug.Log(
+        $"Vermelhas: {redCount} | Pretas: {blackCount}"
+    );
+
+    if (redCount <= 1)
+    {
+        UIManager.Instance.ShowWinner("Preto");
+    }
+
+    if (blackCount <= 1)
+    {
+        UIManager.Instance.ShowWinner("Vermelho");
+    }
+}
 }
