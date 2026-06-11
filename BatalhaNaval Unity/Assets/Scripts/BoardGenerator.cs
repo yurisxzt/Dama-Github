@@ -4,8 +4,11 @@ public class BoardGenerator : MonoBehaviour
 {
     public GameObject tilePrefab;
 
-    public Color lightColor = Color.white;
-    public Color darkColor = Color.gray;
+    public Color lightColor =
+    new Color(0.82f, 0.70f, 0.55f);
+
+public Color darkColor =
+    new Color(0.36f, 0.22f, 0.10f);
 
     private const int boardSize = 8;
 
@@ -27,7 +30,8 @@ public class BoardGenerator : MonoBehaviour
                     transform
                 );
 
-                Tile tileScript = tile.GetComponent<Tile>();
+                Tile tileScript =
+                    tile.GetComponent<Tile>();
 
                 tileScript.row = row;
                 tileScript.column = col;
@@ -35,7 +39,8 @@ public class BoardGenerator : MonoBehaviour
                 SpriteRenderer renderer =
                     tile.GetComponent<SpriteRenderer>();
 
-                bool isDark = (row + col) % 2 == 1;
+                bool isDark =
+                    (row + col) % 2 == 1;
 
                 renderer.color =
                     isDark ? darkColor : lightColor;

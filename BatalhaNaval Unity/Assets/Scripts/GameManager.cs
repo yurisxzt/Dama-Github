@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
 
     public bool redTurn = true;
 
+    public bool gameEnded = false;
+
     private void Awake()
     {
         Instance = this;
@@ -18,44 +20,55 @@ public class GameManager : MonoBehaviour
 
     public void ChangeTurn()
     {
+        if (gameEnded)
+            return;
+
         redTurn = !redTurn;
 
         UIManager.Instance.UpdateTurn(redTurn);
     }
 
-   public void CheckWinner()
-{
-    Piece[] pieces =
-        FindObjectsByType<Piece>(
-            FindObjectsSortMode.None
+    public void CheckWinner()
+    {
+        Piece[] pieces =
+            FindObjectsByType<Piece>(
+                FindObjectsSortMode.None
+            );
+
+        int redCount = 0;
+        int blackCount = 0;
+
+        foreach (Piece piece in pieces)
+        {
+            if (piece == null)
+                continue;
+
+            if (piece.isRed)
+                redCount++;
+            else
+                blackCount++;
+        }
+
+        Debug.Log(
+            $"Brancas: {redCount} | Pretas: {blackCount}"
         );
 
-    int redCount = 0;
-    int blackCount = 0;
+        if (redCount <= 1)
+        {
+            gameEnded = true;
 
-    foreach (Piece piece in pieces)
-    {
-        if (piece == null)
-            continue;
+            UIManager.Instance.ShowWinner(
+                "Pretas"
+            );
+        }
 
-        if (piece.isRed)
-            redCount++;
-        else
-            blackCount++;
+        if (blackCount <= 1)
+        {
+            gameEnded = true;
+
+            UIManager.Instance.ShowWinner(
+                "Brancas"
+            );
+        }
     }
-
-    Debug.Log(
-        $"Vermelhas: {redCount} | Pretas: {blackCount}"
-    );
-
-    if (redCount <= 1)
-    {
-        UIManager.Instance.ShowWinner("Preto");
-    }
-
-    if (blackCount <= 1)
-    {
-        UIManager.Instance.ShowWinner("Vermelho");
-    }
-}
 }

@@ -63,6 +63,6 @@ public class PieceSpawner : MonoBehaviour
             piece.GetComponent<SpriteRenderer>();
 
         renderer.color =
-            isRed ? Color.red : Color.black;
+    isRed ? Color.white : Color.black;
     }
 }

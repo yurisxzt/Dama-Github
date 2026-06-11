@@ -11,10 +11,17 @@ public class Piece : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Color originalColor;
 
+    private GameObject selectionRing;
+
     private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         originalColor = spriteRenderer.color;
+
+        selectionRing = transform.Find("SelectionRing")?.gameObject;
+
+        if (selectionRing != null)
+            selectionRing.SetActive(false);
     }
 
     private void OnMouseDown()
@@ -24,12 +31,14 @@ public class Piece : MonoBehaviour
 
     public void Select()
     {
-        spriteRenderer.color = Color.yellow;
+        if (selectionRing != null)
+            selectionRing.SetActive(true);
     }
 
     public void Deselect()
     {
-        spriteRenderer.color = originalColor;
+        if (selectionRing != null)
+            selectionRing.SetActive(false);
     }
 
     public void MoveTo(int newRow, int newColumn)
@@ -67,12 +76,13 @@ public class Piece : MonoBehaviour
     {
         isKing = true;
 
-        transform.localScale =
-            new Vector3(
-                1.2f,
-                1.2f,
-                1f
-            );
+        Transform crown =
+            transform.Find("Crown");
+
+        if (crown != null)
+        {
+            crown.gameObject.SetActive(true);
+        }
 
         Debug.Log("Virou dama!");
     }

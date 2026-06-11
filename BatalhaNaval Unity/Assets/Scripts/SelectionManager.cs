@@ -13,6 +13,9 @@ public class SelectionManager : MonoBehaviour
 
     public void SelectPiece(Piece piece)
     {
+        if (GameManager.Instance.gameEnded)
+            return;
+
         if (piece.isRed != GameManager.Instance.redTurn)
             return;
 
@@ -22,6 +25,7 @@ public class SelectionManager : MonoBehaviour
         }
 
         selectedPiece = piece;
+
         selectedPiece.Select();
     }
 
