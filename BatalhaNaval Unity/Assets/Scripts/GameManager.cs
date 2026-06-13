@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
                 FindObjectsSortMode.None
             );
 
-        int redCount = 0;
+        int whiteCount = 0;
         int blackCount = 0;
 
         foreach (Piece piece in pieces)
@@ -44,16 +44,16 @@ public class GameManager : MonoBehaviour
                 continue;
 
             if (piece.isRed)
-                redCount++;
+                whiteCount++;
             else
                 blackCount++;
         }
 
         Debug.Log(
-            $"Brancas: {redCount} | Pretas: {blackCount}"
+            $"Brancas: {whiteCount} | Pretas: {blackCount}"
         );
 
-        if (redCount <= 1)
+        if (whiteCount == 0)
         {
             gameEnded = true;
 
@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
             );
         }
 
-        if (blackCount <= 1)
+        if (blackCount == 0)
         {
             gameEnded = true;
 

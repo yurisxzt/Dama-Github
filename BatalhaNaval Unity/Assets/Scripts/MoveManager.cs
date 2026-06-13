@@ -2,6 +2,10 @@ using UnityEngine;
 
 public class MoveManager : MonoBehaviour
 {
+    private void CheckWinnerDelayed()
+{
+    GameManager.Instance.CheckWinner();
+}
     public static MoveManager Instance;
 
     private void Awake()
@@ -150,11 +154,11 @@ public class MoveManager : MonoBehaviour
             return;
 
         if (capturedPiece != null)
-        {
-            Destroy(capturedPiece.gameObject);
+{
+    Destroy(capturedPiece.gameObject);
 
-            GameManager.Instance.CheckWinner();
-        }
+    Invoke(nameof(CheckWinnerDelayed), 0.01f);
+}
 
         piece.MoveTo(
             tile.row,
