@@ -1,31 +1,71 @@
-using System.IO;
-using System.Net.Sockets;
 using UnityEngine;
 
 public class Client : MonoBehaviour
 {
-    private TcpClient cliente;
-    private StreamWriter writer;
-
-    void Start()
+    public enum NetworkRole
     {
-        try
+        Server,
+        Client
+    }
+
+    public NetworkRole role = NetworkRole.Client;
+    public string host = "127.0.0.1";
+    public int port = 7777;
+
+    private bool startAsServer;
+
+    private void Start()
+    {
+        ParseStartupMode();
+        startAsServer = role == NetworkRole.Server;
+
+        NetworkManager existingNetworkManager =
+            GetComponent<NetworkManager>();
+
+        if (existingNetworkManager == null)
         {
-            cliente = new TcpClient();
-
-            cliente.Connect("127.0.0.1", 7777);
-
-            Debug.Log("Conectado ao servidor!");
-
-            writer = new StreamWriter(cliente.GetStream());
-
-            writer.WriteLine("Olá servidor!");
-
-            writer.Flush();
+            existingNetworkManager =
+                gameObject.AddComponent<NetworkManager>();
         }
-        catch (System.Exception e)
+
+        NetworkManager.Instance = existingNetworkManager;
+        NetworkManager.Instance.startAsServer = startAsServer;
+        NetworkManager.Instance.host = host;
+        NetworkManager.Instance.port = port;
+        NetworkManager.Instance.InitializeNetworkMode();
+
+        Debug.Log(
+            $"Rede iniciada como {(startAsServer ? "servidor" : "cliente")} em {host}:{port}."
+        );
+    }
+
+    private void ParseStartupMode()
+    {
+        string[] args = System.Environment.GetCommandLineArgs();
+
+        for (int i = 0; i < args.Length; i++)
         {
-            Debug.LogError(e.Message);
+            if (args[i].Equals("-server", System.StringComparison.OrdinalIgnoreCase))
+            {
+                role = NetworkRole.Server;
+            }
+            else if (args[i].Equals("-client", System.StringComparison.OrdinalIgnoreCase))
+            {
+                role = NetworkRole.Client;
+            }
+            else if (args[i].Equals("-host", System.StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+            {
+                host = args[i + 1];
+            }
+            else if (args[i].Equals("-port", System.StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
+            {
+                int parsedPort;
+
+                if (int.TryParse(args[i + 1], out parsedPort))
+                {
+                    port = parsedPort;
+                }
+            }
         }
     }
 }

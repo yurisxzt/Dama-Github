@@ -4,18 +4,29 @@ public class PieceSpawner : MonoBehaviour
 {
     public GameObject piecePrefab;
 
+    private bool hasSpawnedPieces = false;
+
     private void Start()
     {
+        if (hasSpawnedPieces)
+            return;
+
         SpawnPieces();
+        hasSpawnedPieces = true;
     }
 
-    void SpawnPieces()
+    private void SpawnPieces()
     {
+        if (piecePrefab == null)
+        {
+            CreateFallbackPiecePrefab();
+        }
+
         SpawnBlackPieces();
         SpawnRedPieces();
     }
 
-    void SpawnBlackPieces()
+    private void SpawnBlackPieces()
     {
         for (int row = 0; row < 3; row++)
         {
@@ -29,7 +40,7 @@ public class PieceSpawner : MonoBehaviour
         }
     }
 
-    void SpawnRedPieces()
+    private void SpawnRedPieces()
     {
         for (int row = 5; row < 8; row++)
         {
@@ -43,7 +54,7 @@ public class PieceSpawner : MonoBehaviour
         }
     }
 
-    void CreatePiece(int row, int col, bool isRed)
+    private void CreatePiece(int row, int col, bool isRed)
     {
         GameObject piece =
             Instantiate(
@@ -55,6 +66,11 @@ public class PieceSpawner : MonoBehaviour
 
         Piece pieceScript = piece.GetComponent<Piece>();
 
+        if (pieceScript == null)
+        {
+            pieceScript = piece.AddComponent<Piece>();
+        }
+
         pieceScript.row = row;
         pieceScript.column = col;
         pieceScript.isRed = isRed;
@@ -62,7 +78,36 @@ public class PieceSpawner : MonoBehaviour
         SpriteRenderer renderer =
             piece.GetComponent<SpriteRenderer>();
 
+        if (renderer == null)
+        {
+            renderer = piece.AddComponent<SpriteRenderer>();
+        }
+
         renderer.color =
-    isRed ? Color.white : Color.black;
+            isRed ? Color.white : Color.black;
+    }
+
+    private void CreateFallbackPiecePrefab()
+    {
+        Texture2D texture = new Texture2D(1, 1);
+        texture.SetPixel(0, 0, Color.white);
+        texture.Apply();
+
+        Sprite sprite = Sprite.Create(
+            texture,
+            new Rect(0, 0, 1, 1),
+            new Vector2(0.5f, 0.5f),
+            1f
+        );
+
+        GameObject fallbackPiece = new GameObject("FallbackPiece");
+        SpriteRenderer renderer =
+            fallbackPiece.AddComponent<SpriteRenderer>();
+
+        renderer.sprite = sprite;
+        renderer.color = Color.white;
+
+        fallbackPiece.AddComponent<Piece>();
+        piecePrefab = fallbackPiece;
     }
 }

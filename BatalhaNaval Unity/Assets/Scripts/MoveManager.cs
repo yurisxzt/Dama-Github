@@ -2,10 +2,6 @@ using UnityEngine;
 
 public class MoveManager : MonoBehaviour
 {
-    private void CheckWinnerDelayed()
-{
-    GameManager.Instance.CheckWinner();
-}
     public static MoveManager Instance;
 
     private void Awake()
@@ -18,157 +14,162 @@ public class MoveManager : MonoBehaviour
         Piece piece =
             SelectionManager.Instance.GetSelectedPiece();
 
-        if (piece == null)
+        if (piece == null || GameManager.Instance.gameEnded)
             return;
 
-        Piece pieceOnTarget =
-            BoardState.Instance.GetPieceAt(
-                tile.row,
-                tile.column
-            );
-
-        if (pieceOnTarget != null)
+        if (!IsValidMove(piece, tile.row, tile.column, out Piece capturedPiece))
             return;
 
-        bool validMove = false;
-        Piece capturedPiece = null;
-
-        int rowDifference =
-            tile.row - piece.row;
-
-        int columnDifference =
-            tile.column - piece.column;
-
-        // =====================
-        // MOVIMENTO NORMAL
-        // =====================
-
-        if (!piece.isKing)
-        {
-            if (piece.isRed)
-            {
-                if (
-                    rowDifference == -1 &&
-                    Mathf.Abs(columnDifference) == 1
-                )
-                {
-                    validMove = true;
-                }
-            }
-            else
-            {
-                if (
-                    rowDifference == 1 &&
-                    Mathf.Abs(columnDifference) == 1
-                )
-                {
-                    validMove = true;
-                }
-            }
-        }
-
-        // =====================
-        // MOVIMENTO DA DAMA
-        // =====================
-
-        if (piece.isKing)
-        {
-            if (
-                Mathf.Abs(rowDifference) == 1 &&
-                Mathf.Abs(columnDifference) == 1
-            )
-            {
-                validMove = true;
-            }
-        }
-
-        // =====================
-        // CAPTURA NORMAL
-        // =====================
-
-        if (!piece.isKing)
-        {
-            if (
-                Mathf.Abs(rowDifference) == 2 &&
-                Mathf.Abs(columnDifference) == 2
-            )
-            {
-                int middleRow =
-                    piece.row + rowDifference / 2;
-
-                int middleColumn =
-                    piece.column + columnDifference / 2;
-
-                Piece enemy =
-                    BoardState.Instance.GetPieceAt(
-                        middleRow,
-                        middleColumn
-                    );
-
-                if (
-                    enemy != null &&
-                    enemy.isRed != piece.isRed
-                )
-                {
-                    validMove = true;
-                    capturedPiece = enemy;
-                }
-            }
-        }
-
-        // =====================
-        // CAPTURA DA DAMA
-        // =====================
-
-        if (piece.isKing)
-        {
-            if (
-                Mathf.Abs(rowDifference) == 2 &&
-                Mathf.Abs(columnDifference) == 2
-            )
-            {
-                int middleRow =
-                    piece.row + rowDifference / 2;
-
-                int middleColumn =
-                    piece.column + columnDifference / 2;
-
-                Piece enemy =
-                    BoardState.Instance.GetPieceAt(
-                        middleRow,
-                        middleColumn
-                    );
-
-                if (
-                    enemy != null &&
-                    enemy.isRed != piece.isRed
-                )
-                {
-                    validMove = true;
-                    capturedPiece = enemy;
-                }
-            }
-        }
-
-        if (!validMove)
-            return;
+        int fromRow = piece.row;
+        int fromColumn = piece.column;
 
         if (capturedPiece != null)
-{
-    Destroy(capturedPiece.gameObject);
+        {
+            Destroy(capturedPiece.gameObject);
+        }
 
-    Invoke(nameof(CheckWinnerDelayed), 0.01f);
-}
-
-        piece.MoveTo(
-            tile.row,
-            tile.column
-        );
-
+        piece.MoveTo(tile.row, tile.column);
         piece.Deselect();
 
         SelectionManager.Instance.ClearSelection();
 
         GameManager.Instance.ChangeTurn();
+        GameManager.Instance.CheckWinner();
+
+        NetworkManager.Instance.SendMove(
+            fromRow,
+            fromColumn,
+            tile.row,
+            tile.column,
+            piece.isRed
+        );
+    }
+
+    public void ApplyRemoteMove(int fromRow, int fromColumn, int toRow, int toColumn)
+    {
+        Piece piece = BoardState.Instance.GetPieceAt(fromRow, fromColumn);
+
+        if (piece == null || GameManager.Instance.gameEnded)
+            return;
+
+        if (!IsValidMove(piece, toRow, toColumn, out Piece capturedPiece))
+            return;
+
+        if (capturedPiece != null)
+        {
+            Destroy(capturedPiece.gameObject);
+        }
+
+        piece.MoveTo(toRow, toColumn);
+        piece.Deselect();
+
+        SelectionManager.Instance.ClearSelection();
+
+        GameManager.Instance.ChangeTurn();
+        GameManager.Instance.CheckWinner();
+    }
+
+    private bool IsValidMove(Piece piece, int targetRow, int targetColumn, out Piece capturedPiece)
+    {
+        capturedPiece = null;
+
+        Piece pieceOnTarget =
+            BoardState.Instance.GetPieceAt(
+                targetRow,
+                targetColumn
+            );
+
+        if (pieceOnTarget != null)
+            return false;
+
+        int rowDifference = targetRow - piece.row;
+        int columnDifference = targetColumn - piece.column;
+
+        bool validMove = false;
+
+        if (!piece.isKing)
+        {
+            if (piece.isRed)
+            {
+                validMove =
+                    rowDifference == -1 &&
+                    Mathf.Abs(columnDifference) == 1;
+            }
+            else
+            {
+                validMove =
+                    rowDifference == 1 &&
+                    Mathf.Abs(columnDifference) == 1;
+            }
+        }
+
+        if (piece.isKing)
+        {
+            validMove =
+                Mathf.Abs(rowDifference) == 1 &&
+                Mathf.Abs(columnDifference) == 1;
+        }
+
+        if (!piece.isKing)
+        {
+            if (
+                Mathf.Abs(rowDifference) == 2 &&
+                Mathf.Abs(columnDifference) == 2
+            )
+            {
+                int middleRow =
+                    piece.row + rowDifference / 2;
+
+                int middleColumn =
+                    piece.column + columnDifference / 2;
+
+                Piece enemy =
+                    BoardState.Instance.GetPieceAt(
+                        middleRow,
+                        middleColumn
+                    );
+
+                if (
+                    enemy != null &&
+                    enemy.isRed != piece.isRed
+                )
+                {
+                    validMove = true;
+                    capturedPiece = enemy;
+                }
+            }
+        }
+
+        if (piece.isKing)
+        {
+            if (
+                Mathf.Abs(rowDifference) == 2 &&
+                Mathf.Abs(columnDifference) == 2
+            )
+            {
+                int middleRow =
+                    piece.row + rowDifference / 2;
+
+                int middleColumn =
+                    piece.column + columnDifference / 2;
+
+                Piece enemy =
+                    BoardState.Instance.GetPieceAt(
+                        middleRow,
+                        middleColumn
+                    );
+
+                if (
+                    enemy != null &&
+                    enemy.isRed != piece.isRed
+                )
+                {
+                    validMove = true;
+                    capturedPiece = enemy;
+                }
+            }
+        }
+
+        return validMove;
     }
 }
